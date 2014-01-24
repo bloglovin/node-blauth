@@ -5,7 +5,7 @@ var Hapi = require('hapi');
 var http = require('http');
 
 var Scheme = function (server, options) {
-  this.auth_host = 'local.bloglovin.com';
+  this.auth_host = 'www.bloglovin.com';
   this.auth_path = '/auth?return=API';
 };
 

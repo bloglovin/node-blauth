@@ -111,7 +111,8 @@ Scheme.prototype.externalAuth = function (querystring, callback) {
     var data = [];
 
     if (res.statusCode == 403) {
-      return callback('Error', null);
+      var error = Hapi.error.unauthorized('Not authorized');
+      return callback(error, null);
     }
 
     res.on('data', function (chunk) {
@@ -125,7 +126,8 @@ Scheme.prototype.externalAuth = function (querystring, callback) {
   });
 
   req.on('error', function(e) {
-    return callback('Error', null);
+    var error = Hapi.error.unauthorized('Not authorized');
+    return callback(error, null);
   });
 };
 

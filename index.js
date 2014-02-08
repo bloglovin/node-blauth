@@ -125,6 +125,12 @@ Scheme.prototype.externalAuth = function (querystring, callback) {
     });
   });
 
+  req.setTimeout(3000, function () {
+    req.abort();
+    var error = Hapi.error.unauthorized('Not authorized');
+    return callback(error, null);
+  });
+
   req.on('error', function(e) {
     var error = Hapi.error.unauthorized('Not authorized');
     return callback(error, null);

@@ -118,7 +118,7 @@ describe('BL Hapi auth module', function () {
     it('should return a param string', function () {
       var query = auth.buildQuery('fhdjbfhdfdf', 123, 'app', 1);
 
-      expect(query).to.equal('hash=fhdjbfhdfdf&timestamp=123&app_id=app&user=1');
+      expect(query).to.equal('hash=fhdjbfhdfdf&timestamp=123&app_id=app&user=1&path=undefined');
     });
   });
 

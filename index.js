@@ -71,7 +71,8 @@ Scheme.prototype.authenticate = function (request, callback) {
     request.query.hash,
     request.query.timestamp,
     request.query.app_id,
-    request.query.user
+    request.query.user,
+    request.path
   );
 
   this.externalAuth(querystring, callback);
@@ -86,13 +87,14 @@ Scheme.prototype.authenticate = function (request, callback) {
 // * **app_id** string
 // * **user** int
 //
-Scheme.prototype.buildQuery = function (hash, timestamp, app_id, user) {
+Scheme.prototype.buildQuery = function (hash, timestamp, app_id, user, path) {
   // Send auth request to core api
   var querystring = [
     'hash=' + hash,
     'timestamp=' + timestamp,
     'app_id=' + app_id,
     'user=' + user,
+    'path=' + path
   ].join('&');
 
   return querystring;

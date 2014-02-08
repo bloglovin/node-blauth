@@ -1,6 +1,6 @@
 {
   "name": "blauth",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "bl auth module",
   "main": "index.js",
   "scripts": {

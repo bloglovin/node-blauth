@@ -3,6 +3,8 @@
 
 var Hapi = require('hapi');
 var http = require('http');
+var QS = require('querystring');
+var SchemeObj = null;
 
 var Scheme = function (server, options) {
   this.auth_host = options.host || 'www.bloglovin.com';
@@ -23,7 +25,7 @@ var Scheme = function (server, options) {
 // * **request** hapi request object**
 // * **callback** function (err, message)
 //
-Scheme.prototype.authenticate = function (request, callback) {
+Scheme.prototype.authenticate = function (request, reply) {
   var error = null;
 
   // Validate that we aren't missing anything obvious
@@ -64,9 +66,13 @@ Scheme.prototype.authenticate = function (request, callback) {
   // If we have any errors so far, no need to go to the API
   // Just return our message
   if (error) {
-    return callback(Hapi.error.unauthorized(error), null);
+    return reply(Hapi.error.unauthorized(error), null);
   }
 
+  reply(null, {credentials: {}});
+};
+
+Scheme.prototype.payload = function (request, next) {
   var querystring = this.buildQuery(
     request.query.hash,
     request.query.timestamp,
@@ -75,7 +81,7 @@ Scheme.prototype.authenticate = function (request, callback) {
     request.path
   );
 
-  this.externalAuth(querystring, callback);
+  this.externalAuth(querystring, request.payload, next);
 };
 
 //
@@ -100,21 +106,26 @@ Scheme.prototype.buildQuery = function (hash, timestamp, app_id, user, path) {
   return querystring;
 };
 
-Scheme.prototype.externalAuth = function (querystring, callback) {
+Scheme.prototype.externalAuth = function (querystring, params, next) {
   var self = this;
+  var post_data = QS.stringify(params);
   var options = {
     hostname: this.auth_host,
     path: this.auth_path + '&' + querystring,
     agent: false,
     port: 80,
+    method: 'POST',
+    headers: {
+      'Content-Length': post_data.length
+    }
   };
 
-  var req = http.get(options, function(res) {
+  var req = http.request(options, function(res) {
     var data = [];
 
     if (res.statusCode == 403) {
       var error = Hapi.error.unauthorized('Not authorized');
-      return callback(error, null);
+      return next(error);
     }
 
     res.on('data', function (chunk) {
@@ -123,28 +134,51 @@ Scheme.prototype.externalAuth = function (querystring, callback) {
 
     res.on('end', function () {
       data = JSON.parse(data.join());
-      self.validate(data, callback);
+      self.validate(data, next);
     });
   });
 
   req.setTimeout(3000, function () {
     req.abort();
     var error = Hapi.error.unauthorized('Not authorized');
-    return callback(error, null);
+    return next(error);
   });
 
   req.on('error', function(e) {
     var error = Hapi.error.unauthorized('Not authorized');
-    return callback(error, null);
+    return next(error);
   });
+
+  req.write(post_data);
+  req.end();
 };
 
-Scheme.prototype.validate = function (data, callback) {
+Scheme.prototype.validate = function (data, next) {
   if (data.success === true) {
-    callback(null, data);
+    next(null);
   }
 };
 
-module.exports = function (server, options) {
-  return new Scheme(server, options);
-}
+var internals = {};
+
+internals.blauth = function (server, options) {
+  SchemeObj = new Scheme(server, options);
+  return SchemeObj;
+};
+
+exports.register = function (plugin, options, next) {
+  plugin.auth.scheme('blauth', internals.blauth);
+  plugin.auth.strategy('default', 'blauth', true, {host: 'www.bloglovin.com'});
+
+  plugin.ext('onPostAuth', function (request, reply) {
+    // this should be triggered by hapi imho, but let's
+    // do a hack! HACKISH HACKS FOR THE WIN
+    if (SchemeObj != null) {
+      return SchemeObj.payload(request, reply);
+    }
+
+    return reply();
+  });
+
+  next();
+};

@@ -18,11 +18,12 @@ function getMockRequest() {
   return mock_request;
 }
 
+// NO TESTS ARE PASSING RIGHT NOW >.<
 describe('BL Hapi auth module', function () {
   describe('authenticate', function () {
     it('should call external auth', function (done) {
       var mock = sinon.mock(auth);
-      mock.expects('externalAuth').callsArgWith(1, null, 'Authed');
+      mock.expects('externalAuth').callsArgWith(2, null, 'Authed');
 
       auth.authenticate(getMockRequest(), function (err, result) {
         expect(err).to.equal(null);
@@ -126,7 +127,7 @@ describe('BL Hapi auth module', function () {
     it('should contact api and fail auth', function (done) {
       var query = 'hash=fhdjbfhdfdf&timestamp=123&app_id=app&user=1';
 
-      auth.externalAuth(query, function (err, result) {
+      auth.externalAuth(query, {},function (err, result) {
         expect(err).to.not.equal(null);
         done();
       });
@@ -135,9 +136,9 @@ describe('BL Hapi auth module', function () {
     it('should contact api and fail request', function (done) {
       auth.auth_host = 'dafdsfdfd';
 
-      var query = 'hash=fhdjbfhdfdf&timestamp=123&app_id=app&user=1';
+      var query = 'hash=fhdjbfhdfdf&timestamp=123&app_id=app&user=1&path=/feed';
 
-      auth.externalAuth(query, function (err, result) {
+      auth.externalAuth(query, {}, function (err, result) {
         expect(err).to.not.equal(null);
         done();
       });

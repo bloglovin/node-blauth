@@ -121,11 +121,9 @@ Scheme.prototype.externalAuth = function (querystring, params, next) {
     }
   };
 
-
   var req = http.request(options, function(res) {
     var data = [];
 
-    console.log(res.statusCode);
     if (res.statusCode == 403) {
       var error = Hapi.error.unauthorized('Not authorized');
       return next(error);

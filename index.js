@@ -116,13 +116,16 @@ Scheme.prototype.externalAuth = function (querystring, params, next) {
     port: 80,
     method: 'POST',
     headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
       'Content-Length': post_data.length
     }
   };
 
+
   var req = http.request(options, function(res) {
     var data = [];
 
+    console.log(res.statusCode);
     if (res.statusCode == 403) {
       var error = Hapi.error.unauthorized('Not authorized');
       return next(error);
@@ -173,7 +176,10 @@ exports.register = function (plugin, options, next) {
   plugin.ext('onPostAuth', function (request, reply) {
     // this should be triggered by hapi imho, but let's
     // do a hack! HACKISH HACKS FOR THE WIN
-    if (SchemeObj != null) {
+    if (
+      request.auth.isAuthenticated === true
+      && SchemeObj != null
+    ) {
       return SchemeObj.payload(request, reply);
     }
 

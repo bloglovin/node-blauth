@@ -14,7 +14,7 @@
     "url": "git://github.com/bloglovin/node-blauth.git"
   },
   "dependencies": {
-    "hapi": "2.0.*"
+    "hapi": "2.1.*"
   },
   "devDependencies": {
     "mocha": "*",

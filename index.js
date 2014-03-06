@@ -169,7 +169,7 @@ internals.blauth = function (server, options) {
 
 exports.register = function (plugin, options, next) {
   plugin.auth.scheme('blauth', internals.blauth);
-  plugin.auth.strategy('default', 'blauth', true, {host: 'www.bloglovin.com'});
+  plugin.auth.strategy('default', 'blauth', true, options || {});
 
   plugin.ext('onPostAuth', function (request, reply) {
     // this should be triggered by hapi imho, but let's
